@@ -1,0 +1,17 @@
+{
+  ".gitignore": "d1f603a8089f23a71572fed9f728ccaafa90820544fed69ed8074f471a637180",
+  "README.md": "255a879a15c1bca10dfa135a2834e76b3ea54c76378f5a0b48d27a5574c37611",
+  "docs/CONNECTION.md": "3147e91639d66b05e5cbd8ac63092d2c64ee374b47d00f4d049e0f59414d1fa5",
+  "docs/PROTOCOL.md": "6608e73eea4f3ce9a357d12856561438f4bc681db33d0265b47906dd72fd3418",
+  "docs/DATA.md": "383192b9f458a08bc0df7a67a3aa650e7884785311caa7b7bc8e5c6111cbef87",
+  "simulation_validation.json": "08466d5d1799f9b002bfea8aaa542b760d393eaff628de86746c33377d38d8c2",
+  "recorder/fast_spectrum.py": "2c137ecbdd20663a220bf29245ae3d3a3c1b3a1be000ca41277173d61f7d4935",
+  "recorder/spatial_recording.py": "0cdeae219e2d3ac106f28eebde02d22f4b73d68e1bfab9b2b1a117042db31cc8",
+  "recorder/study_session.py": "98699b83d7e05abfc052f52157c7d96c9376e070ffeac392e6a3f4e81d87c7ae",
+  "recorder/export_spatial.py": "9a43340f2632762d222e4a977556329890f02883e930bb355b3fd074f5e935ea",
+  "recorder/lo_ratio.py": "80a4dad9b3995b03346189ce637524aa651c79571fc65bf346419b4166fee942",
+  "recorder/viewer.html": "d60a0a029db994447a7955f463ab7f7a05b8e52e7d043c1b9870af64e300c461",
+  "recorder/test_spatial_recorder.py": "cfdb8d1b034491fbf431228035f01200947bfcd716df6c77876ad806f8bf4359",
+  "recorder/download_study.sh": "900a7313feb48ff02835c5e87309172973ca7d36585d779e702a412329067ad6",
+  "recorder/requirements-analysis.txt": "45a71b63ab8f4faa94c06b94f03cafde1024d3d1d9c017ef6de7e9a9d7ba994b"
+}

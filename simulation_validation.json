@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "mode": "SIMULATION",
+  "spatial_frames": 59,
+  "all_points": 494,
+  "bands": 96,
+  "achieved_hz": 29.87539899289833,
+  "all_point_csv_rows": 29146,
+  "tests": "lossless images/spectra, paired references, per-frame masks, artifact retention, full-rate export, ROI-centered xy, missing-ref guard",
+  "date": "2026-10-26",
+  "hardware_tested": false,
+  "python38": "Syntax checked only; runtime tests used Mac Python 3.13",
+  "study_workflow": "P01 left -> P02 right -> P01 left round 2, separate archives, persistent same-arm timer unit test"
+}

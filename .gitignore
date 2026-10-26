@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+recordings*/
+simulation_recordings/
+test-output/
+*.npz
+*.loraw
+*.csv
+*.csv.gz
+*.jpg
+*.png
+*.zip
+.env
+.DS_Store
