@@ -1,0 +1,5 @@
+# Optional analysis/simulation environment. Reuse the installed Jetson SDK environment.
+numpy>=1.19,<2; python_version < '3.9'
+numpy>=1.23; python_version >= '3.9'
+Pillow>=8
+matplotlib>=3.3
