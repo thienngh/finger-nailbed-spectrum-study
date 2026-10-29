@@ -13,3 +13,6 @@ test-output/
 *.zip
 .env
 .DS_Store
+
+# Participant descriptors belong with private study data.
+**/participant.json

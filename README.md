@@ -24,7 +24,7 @@ First follow [CONNECTION.md](docs/CONNECTION.md). Both Mac and Jetson join the s
 export JETSON_HOST=admin@172.20.10.13
 export SOURCE_DIR="$HOME/Downloads/finger-nailbed-spectrum-study-main"
 ssh -o ConnectTimeout=10 "$JETSON_HOST" 'mkdir -p /home/admin/fingertip-spectrum'
-scp "$SOURCE_DIR"/recorder/{fast_spectrum.py,spatial_recording.py,study_session.py,lo_ratio.py,export_spatial.py,viewer.html} "$JETSON_HOST:/home/admin/fingertip-spectrum/"
+scp "$SOURCE_DIR"/recorder/{fast_spectrum.py,spatial_recording.py,study_session.py,environment_recording.py,lo_ratio.py,export_spatial.py,viewer.html} "$JETSON_HOST:/home/admin/fingertip-spectrum/"
 ssh "$JETSON_HOST"
 ```
 
@@ -76,6 +76,16 @@ recordings_spatial/study_20261027/
 
 The example path does not prescribe nailbed or clamp; actual folders follow your selections. The browser lists previous trials and completed pressure counts by participant/arm/site/condition. Archive completion means files were saved, not that a trial is scientifically usable. Preserve failed trials, document reasons, and record retakes to new folders.
 
+## Participant profiles and per-assessment lighting (2026-10-29 update)
+
+Enter a participant ID, name, age (years), participant-reported biological sex, height (cm), weight (kg) and self-reported skin entries by body site/side. Monk uses 1–10 and reported Fitzpatrick entries use 1–6; select the relevant skin-reference row for the trial. An overall/legacy reference is also retained for compatibility. The program saves these details automatically on Start trial; **Save participant details** also saves without recording. Optional Fenty, Fitzpatrick, ITA and melanin-index fields are saved with the participant. Trial notes remain specific to the current trial.
+
+Selecting P02 clears P01's details and loads P02's saved profile, or blank fields for a new participant. Returning to P01 restores P01's details automatically. Profiles live at `recordings_spatial/STUDY_ID/P01/participant.json`, survive a program restart with the same study ID, and are included in the bulk download. Every trial keeps a separate snapshot of the profile used then; later profile edits do not rewrite earlier recordings. A profile saved by a different browser must be reloaded before stale edits can overwrite it.
+
+Use consistent participant IDs. Existing trials from the earlier version are preserved, but their metadata is not silently imported into profiles; enter/verify each person's details once after updating. Confirm arm, round, tissue site and ROI for every new trial. A Monk score can remain blank when unassessed; never invent a value to fill the field.
+
+Read [LIGHTING.md](docs/LIGHTING.md) for the C-800-U procedure, readable trial names and correction equations. **Every assessment now requires a fresh C-800-U lux reading**, with optional color readings, meter position and record ID. Click Record this lighting measurement before Start; the next trial requires another reading.
+
 ## End of day: transfer the entire study once
 
 1. Finish the final trial and wait for **archive saved**. Note incomplete/invalid trials and their folder IDs.
@@ -101,6 +111,7 @@ If disk/decode cannot keep up, the recorder reports an error and marks the trial
 
 - `recorder/fast_spectrum.py`: camera acquisition, SDK decoding, references, ROI/masks, trial markers and localhost browser server. Separate acquisition, preview and disk-writing work; preview refresh is slower than recording.
 - `recorder/spatial_recording.py`: lossless decoded NPZ frames, bounded writer queue, per-point references, explicit spatial masks and archive status.
+- `recorder/environment_recording.py`: validated, single-use C-800-U lighting metadata bound to each assessment.
 - `recorder/study_session.py`: validated labels, participant/arm/site folders, persistent same-arm intervention timer, study inventory.
 - `recorder/viewer.html`: preview, label entry, progress, references, trial controls and live spectral graphs.
 - `recorder/lo_ratio.py`: adaptation of Living Optics' exploratory 548/599 nm index; not calibrated perfusion. It remains separate from the saved full spectra.
