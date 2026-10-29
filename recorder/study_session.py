@@ -1,14 +1,105 @@
 """Participant/arm trial organization and persisted intervention timing (Python 3.8)."""
 import csv
 import json
+import math
+import unicodedata
 import re
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from spatial_recording import json_write, PRESSURE_CONDITIONS
 
 SITES = ('nailbed', 'finger_side', 'finger_pad', 'hand_dorsum', 'forearm', 'other')
+PROFILE_FIELDS = ('skin_tone_monk', 'skin_tone_fenty', 'fitzpatrick', 'ita',
+                  'melanin_index', 'skin_tone_method', 'skin_tone_assessment_site',
+                  'full_name', 'age_years', 'biological_sex', 'biological_sex_other',
+                  'height_cm', 'weight_kg', 'site_assessments')
+
+
+def optional_number(value, label, lower, upper, integer=False):
+    if value is None or value=='':
+        return None
+    if isinstance(value,bool):
+        raise ValueError(label+' must be a number')
+    try:
+        number=float(value)
+    except (ValueError,TypeError):
+        raise ValueError(label+' must be a number')
+    if not math.isfinite(number) or not lower<=number<=upper or (integer and number!=int(number)):
+        raise ValueError('%s must be %sbetween %s and %s' % (label,'a whole number ' if integer else '',lower,upper))
+    return int(number) if integer else number
+
+
+def fitz_code(value):
+    value=str(value or '').strip().upper()
+    roman={'I':'1','II':'2','III':'3','IV':'4','V':'5','VI':'6'}
+    value=roman.get(value,value)
+    if value and value not in ('1','2','3','4','5','6'):
+        raise ValueError('Fitzpatrick entry must be 1–6 (or I–VI), or blank')
+    return value
+
+
+def profile_fields(values):
+    if not isinstance(values, dict):
+        raise ValueError('Participant details must be an object')
+    fields = {}
+    numeric={'age_years':(0,130,True),'height_cm':(20,300,False),'weight_kg':(.1,700,False)}
+    for key in PROFILE_FIELDS:
+        if key=='site_assessments':
+            continue
+        value = values.get(key)
+        if key in numeric:
+            fields[key]=optional_number(value,key,*numeric[key]);continue
+        if value is not None and not isinstance(value, (str,int,float)):
+            raise ValueError('Invalid participant detail: '+key)
+        value = '' if value is None else str(value).strip()
+        if len(value)>200:
+            raise ValueError('Participant detail too long: '+key)
+        fields[key] = value
+    if fields['skin_tone_monk'] and not re.fullmatch(r'(?:[1-9]|10)', fields['skin_tone_monk']):
+        raise ValueError('Monk score must be a whole number from 1 to 10, or blank')
+    fields['fitzpatrick']=fitz_code(fields['fitzpatrick'])
+    if fields['skin_tone_method'] not in ('', 'self_reported', 'operator_visual', 'other'):
+        raise ValueError('Choose how the Monk score was assessed')
+    if fields['biological_sex'] not in ('','female','male','intersex','self_described','prefer_not_to_say'):
+        raise ValueError('Select the participant-reported biological sex')
+    rows=values.get('site_assessments') or []
+    if not isinstance(rows,list) or len(rows)>40:
+        raise ValueError('Use at most 40 site-specific skin entries')
+    fields['site_assessments']=[];seen=set()
+    for row in rows:
+        if not isinstance(row,dict):raise ValueError('Invalid skin-site entry')
+        site=str(row.get('site') or '').strip()
+        if not site or len(site)>80:raise ValueError('Each skin entry needs a body site (up to 80 characters)')
+        arm=row.get('arm','not_specified')
+        if arm not in ('left','right','both','not_specified'):raise ValueError('Invalid skin-entry side')
+        monk=str(row.get('monk') or '').strip();fitz=fitz_code(row.get('fitzpatrick'))
+        if monk and not re.fullmatch(r'(?:[1-9]|10)',monk):raise ValueError('Site Monk score must be 1–10 or blank')
+        if not monk and not fitz:raise ValueError('Enter at least one self-reported score for each site')
+        entry_id=token(row.get('id') or uuid.uuid4().hex,'Skin-entry ID')
+        if entry_id in seen:raise ValueError('Duplicate skin-entry ID')
+        seen.add(entry_id)
+        fields['site_assessments'].append(dict(id=entry_id,site=site,arm=arm,monk=monk,
+            fitzpatrick=fitz,method='self_reported',interpretation='Site-specific participant report; Fitzpatrick is normally a person-level sun-response phototype'))
+    return fields
+
+
+def selected_skin_entry(fields, entry_id):
+    if not entry_id:
+        return None
+    for row in fields['site_assessments']:
+        if row['id']==entry_id:return dict(row)
+    raise ValueError('Selected skin-site entry no longer exists; select it again')
+
+
+def readable_trial_name(fields, skin, stamp):
+    name=unicodedata.normalize('NFKD',fields.get('full_name') or 'Participant').encode('ascii','ignore').decode()
+    name=re.sub(r'[^A-Za-z0-9]+','_',name).strip('_')[:50] or 'Participant'
+    monk=(skin or {}).get('monk') or fields.get('skin_tone_monk') or 'NA'
+    fitz=(skin or {}).get('fitzpatrick') or fields.get('fitzpatrick') or 'NA'
+    return '%s_Monk%s_Fitz%s_%s' % (name,monk,fitz,stamp)
 
 
 def token(value, label):
@@ -42,9 +133,45 @@ class Study:
         self._cache = None
         self._cache_at = 0
 
-    def new_folder(self, participant, arm, site, condition):
+    def participant(self, participant):
+        participant = token(participant, 'Participant ID').upper()
+        path = self.root/participant/'participant.json'
+        if not path.exists():
+            return None
+        try:
+            profile = json.loads(path.read_text())
+            if (profile.get('participant_id')!=participant or profile.get('schema_version')!=1
+                    or not isinstance(profile.get('revision'), str) or not profile['revision']):
+                raise ValueError('Profile identity or version disagrees')
+            profile['fields'] = profile_fields(profile['fields'])
+            return profile
+        except (OSError, KeyError, TypeError, ValueError, AttributeError) as exc:
+            raise ValueError('Cannot read saved participant profile: '+str(exc))
+
+    def save_participant(self, participant, values, expected_revision=None, check_revision=True):
+        participant = token(participant, 'Participant ID').upper()
+        fields = profile_fields(values)
+        previous = self.participant(participant)
+        revision = previous['revision'] if previous else None
+        if check_revision and expected_revision!=revision:
+            raise ValueError('Participant profile changed; reload that participant before saving')
+        if previous and fields==previous['fields']:
+            return previous
+        profile = dict(schema_version=1, participant_id=participant, fields=fields,
+                       revision=uuid.uuid4().hex,
+                       updated_utc=datetime.now(timezone.utc).isoformat())
+        path = self.root/participant/'participant.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            json_write(path, profile)
+        except OSError as exc:
+            raise ValueError('Could not save participant profile: '+str(exc))
+        return profile
+
+    def new_folder(self, participant, arm, site, condition, fields=None, skin=None):
         stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S_%fZ')
-        return self.root/participant/arm/site/condition/stamp
+        name=readable_trial_name(fields,skin,stamp) if fields is not None else stamp
+        return self.root/participant/arm/site/condition/name
 
     def intervention(self, participant, arm, event, trial_folder):
         # One clock per arm, across tissue sites and conditions. A start with no
@@ -103,7 +230,9 @@ class Study:
 
     def snapshot(self):
         rows = self.inventory()
-        participants = sorted({r.get('participant_id') for r in rows if r.get('participant_id')})
+        participants = {r.get('participant_id') for r in rows if r.get('participant_id')}
+        participants.update(path.parent.name for path in self.root.glob('*/participant.json'))
+        participants = sorted(participants)
         rests = []
         for participant in participants:
             for arm in ('left', 'right'):

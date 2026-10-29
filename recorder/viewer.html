@@ -15,11 +15,46 @@
 <label>Lighting <input id="lighting" maxlength="100" placeholder="source / position" size="18"></label>
 <label>Pressing surface <input id="surface" maxlength="100" placeholder="black / clear / plate" size="18"></label>
 <label>Planned pressure duration (seconds; clinician sets cuff protocol) <input id="planned-seconds" type="number" min="0.1" step="0.1" style="width:85px" placeholder="required for cuff"></label><label>Force / duration notes <input id="force" maxlength="200" size="20"></label></div>
-<details><summary>Optional participant descriptors and notes</summary><div class="controls">
-<label>Monk <input id="monk" maxlength="80" size="8"></label><label>Fenty <input id="fenty" maxlength="80" size="8"></label>
+<h2>Saved participant details</h2><div class="controls">
+<label>Name <input id="full-name" maxlength="200" size="20"></label>
+<label>Age (years) <input id="age-years" type="number" min="0" max="130" step="1" style="width:70px"></label>
+<label>Biological sex (participant report) <select id="biological-sex"><option value="">Not recorded</option><option value="female">Female</option><option value="male">Male</option><option value="intersex">Intersex</option><option value="self_described">Self-described</option><option value="prefer_not_to_say">Prefer not to say</option></select></label>
+<label>Self-described sex <input id="sex-other" maxlength="200" size="16"></label>
+<label>Height (cm) <input id="height-cm" type="number" min="20" max="300" step="0.1" style="width:80px"></label>
+<label>Weight (kg) <input id="weight-kg" type="number" min="0.1" max="700" step="0.1" style="width:80px"></label></div>
+<p>Participant details stay with the stable ID. Enter height in centimetres and weight in kilograms. Names and descriptors are private study data.</p>
+<h3>Overall or legacy skin reference (optional)</h3><div class="controls">
+<label>Monk score (1–10) <input id="monk" type="number" min="1" max="10" step="1" style="width:75px"></label>
+<label>Monk assessment method <select id="tone-method"><option value="">Not recorded</option><option value="self_reported">Participant self-report</option><option value="operator_visual">Operator visual assessment</option><option value="other">Other</option></select></label>
+<label>Skin-tone assessment site <input id="tone-site" maxlength="200" size="22" placeholder="site agreed with clinician"></label>
+</div><h3>Self-reported skin entries by body site</h3>
+<p>Record Monk (1–10) and the participant’s reported Fitzpatrick entry (1–6) for each stated site/side. Fitzpatrick normally describes overall sunburn/tanning response; these site rows are labelled participant reports, not instrument measurements.</p>
+<table style="width:100%;text-align:left"><thead><tr><th>Body site</th><th>Side</th><th>Monk</th><th>Reported Fitzpatrick</th><th></th></tr></thead><tbody id="skin-sites-body"></tbody></table>
+<datalist id="skin-site-choices"><option value="nailbed"><option value="finger_pad"><option value="finger_side"><option value="hand_dorsum"><option value="forearm"><option value="upper_arm"></datalist>
+<div class="controls"><button id="add-skin-site">Add skin site</button><button id="save-participant">Save participant details</button></div>
+<div class="controls"><label>Skin reference entry for THIS assessment <select id="skin-assessment"><option value="">No site entry selected</option></select></label></div>
+<p id="profile-status" role="status">Select a participant ID to load their saved details.</p>
+<p>Details save automatically when a trial starts; use Save participant details to save before starting. Selecting an existing ID restores its details. A new ID starts with blank details. Each trial keeps its own snapshot. Arm, round, tissue ROI and trial notes are checked separately for every trial.</p>
+<details><summary>Additional participant descriptors and trial notes</summary><div class="controls">
+<label>Fenty <input id="fenty" maxlength="80" size="8"></label>
 <label>Fitzpatrick <input id="fitz" maxlength="80" size="8"></label><label>ITA (measured) <input id="ita" maxlength="80" size="10"></label>
 <label>Melanin index (measured) <input id="melanin" maxlength="80" size="10"></label><label>Notes <input id="notes" maxlength="500" size="30"></label></div><p>Leave unmeasured descriptors blank. Use participant IDs; no names are required.</p></details>
-<p><label><input id="roi-confirmed" type="checkbox"> I checked participant, arm, site, ROI and exclusions for THIS trial.</label></p><div class="controls"><select id="type"><option value="">Select condition</option><option value="black_clamp">Black clamp</option><option value="clear_clamp">Clear clamp</option><option value="transparent_plate">Transparent plate</option><option value="sham">Sham (device present, no pressure)</option><option value="motion_control">Movement-only control</option><option value="resting">Resting recording</option><option value="arterial_occlusion">Clinician-directed arterial occlusion (label only)</option><option value="venous_occlusion">Clinician-directed venous occlusion (label only)</option></select><button id="start">Start trial + collect baseline</button><button id="pressure">Mark pressure / control start</button><button id="release">Mark release</button><button id="finish">Finish trial early</button></div>
+<div class="controls"><label>Assessment condition <select id="type"><option value="">Select condition</option><option value="black_clamp">Black clamp</option><option value="clear_clamp">Clear clamp</option><option value="transparent_plate">Transparent plate</option><option value="sham">Sham (device present, no pressure)</option><option value="motion_control">Movement-only control</option><option value="resting">Resting recording</option><option value="arterial_occlusion">Clinician-directed arterial occlusion (label only)</option><option value="venous_occlusion">Clinician-directed venous occlusion (label only)</option></select></label></div><h2>Lighting measurement for THIS assessment</h2>
+<p>Use the Sekonic C-800-U in ambient/continuous mode at the tissue plane. Enter a new measurement before every trial. Lux and color readings are saved as lighting covariates; they do not automatically remove spectral interference. The meter covers 380–780 nm; its utility does not provide C-7000-style 1/5 nm spectrum CSV export.</p>
+<div class="controls">
+<label>Illuminance (lux; required) <input id="env-lux" type="number" min="1" max="200000" step="any" style="width:105px"></label>
+<label>CCT (K; if available) <input id="env-cct" type="number" min="1600" max="40000" step="any" style="width:95px"></label>
+<label>Delta uv (optional) <input id="env-duv" type="number" step="any" style="width:100px"></label>
+<label>CIE x (optional) <input id="env-x" type="number" min="0" max="1" step="any" style="width:85px"></label>
+<label>CIE y (optional) <input id="env-y" type="number" min="0" max="1" step="any" style="width:85px"></label>
+<label>Which lights were on? <select id="env-condition"><option value="all_lights_on">All lights used by camera</option><option value="room_only">Room light only</option><option value="source_only">Study source only</option><option value="other">Other (describe)</option></select></label>
+<label>Meter position / head orientation (required) <input id="env-position" maxlength="500" size="28" placeholder="at tissue plane, head direction..."></label>
+<label>Light source / geometry notes <input id="env-description" maxlength="500" size="25"></label>
+<label>C-800 memory ID <input id="env-memory" maxlength="100" size="12"></label>
+<label>Meter export/photo filename (optional reference) <input id="env-file" maxlength="200" size="25"></label></div>
+<p><label><input id="env-fresh" type="checkbox"> I just measured the lighting for this participant/arm/site/round/condition.</label></p>
+<button id="save-environment">Record this lighting measurement</button><p id="environment-status" role="status">A fresh lighting reading is required before this assessment.</p>
+<p><label><input id="roi-confirmed" type="checkbox"> I checked participant, arm, site, ROI and exclusions for THIS trial.</label></p><div class="controls"><button id="start">Start trial + collect baseline</button><button id="pressure">Mark pressure / control start</button><button id="release">Mark release</button><button id="finish">Finish trial early</button></div>
 <p>All decoded points and the matching full scene image are saved for EVERY processed trial frame, before spatial averaging. Resting trials: use Finish when the desired duration is reached; no pressure is required. Cuff labels do not set a protocol or operate a cuff. Start trial saves an averaged baseline. After “ready”, mark pressure and release yourself. Recovery records automatically. Keep the selected area visible and still; the rectangle does not track movement. Markers record button receipt time, with human timing uncertainty.</p>
 <div class="grid"><section><h2>Camera preview</h2><canvas id="preview" width="320" height="240"></canvas><div class="controls"><label>Drag mode <select id="draw-mode"><option value="roi">Tissue ROI (yellow)</option><option value="exclude">Exclude clamp / shadow (red)</option></select></label><button id="clear-mask">Clear exclusions</button><button id="artifact">Flag whole frame unusable: OFF</button></div><p>Keep the yellow box inside visible tissue. Red rectangles exclude points plus a saved pixel margin; they do not track objects. Update them as objects move, flag contaminated intervals, or annotate saved frames offline. The full scene and all spectra remain archived even when no points are usable. Preview is display-adjusted and slow; recording is independent.</p></section><section><h2>Current spectrum and saved baseline</h2><canvas id="spectrum" width="900" height="340"></canvas><p id="selection">Select a region.</p><small>Blue: current. Orange: averaged baseline. Arbitrary signal units; peak wavelength alone is not a perfusion measurement.</small></section></div>
 <h2>Where changes happen over time</h2><div class="controls"><label>Change scale ± <input id="scale" type="number" min="0.1" step="0.5" value="5" style="width:65px"> %</label></div><canvas id="heatmap" width="1100" height="340"></canvas><p>Horizontal: time. Vertical: wavelength. Blue = lower than baseline; red = higher; neutral = little change. Colors clip at the chosen scale. Weak/nonpositive baseline bands are blank. This is a relative spectral change map.</p>
@@ -27,14 +62,125 @@
 <h2>LO-style 548 / 599 nm ratio</h2><p id="index-status">Capture a white reference to enable this optional index.</p><canvas id="index" width="1100" height="280"></canvas>
 <p>White division, per-point L2 normalization, whole-frame min/max rescaling, then a ratio of two-band log signals. The vendor's white-conversion helper was not supplied, so this is an adaptation. Whole-scene changes can influence the index. Invalid ratios are omitted; no valid points means a gap. This is not calibrated perfusion or SpO₂. Original spectrum graphs remain in arbitrary units.</p>
 <script>
-const $=s=>document.querySelector(s), pv=$('#preview'), pc=pv.getContext('2d'); let data=null,origin=null,pending=false,lastSeq=-1;
+const $=s=>document.querySelector(s), pv=$('#preview'), pc=pv.getContext('2d'); let data=null,origin=null,pending=false,lastSeq=-1,startingTrial=false;
 for(let id of ['participant','arm','site','round','type','distance','lighting','surface','force','planned-seconds'])$('#'+id).addEventListener('change',()=>$('#roi-confirmed').checked=false);
 function studyProgress(d){if(!d.study)return;const s=d.study;$('#study-root').textContent=s.id+' · '+s.root;const groups=new Map();for(const t of s.trials){const key=[t.participant_id,t.arm,t.site,t.condition].join(' / ');const a=groups.get(key)||{complete:0,repeat:0,total:0};a.total++;if(t.complete)a.complete++;if(t.eligible_repeat)a.repeat++;groups.set(key,a)}$('#study-progress').textContent=[...groups].map(([key,a])=>key+': '+a.repeat+' completed pressure trials / 2 planned; '+a.complete+'/'+a.total+' saved archives').join('\n')||'No recorded trials yet.';const ids=s.participants.join(',');if($('#participants').dataset.ids!==ids){$('#participants').dataset.ids=ids;$('#participants').replaceChildren(...s.participants.map(id=>{let o=document.createElement('option');o.value=id;return o}))}const participant=$('#participant').value.trim().toUpperCase(),arm=$('#arm').value,t=(s.rest_timers||[]).find(t=>t.participant_id===participant&&t.arm===arm);$('#rest-timer').textContent=t?.error?t.error:t&&t.seconds_remaining>0?participant+' '+arm+': '+Math.ceil(t.seconds_remaining)+' s until minimum same-arm repeat interval.': 'Check clinician-approved recovery before each intervention; minimum same-arm interval '+s.retest_seconds+' s.';}
 
 function xy(e){let r=pv.getBoundingClientRect();return [Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))]}
-async function command(name,payload={}){try{const r=await fetch('/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const answer=await r.json();if(!r.ok)throw Error(answer.error);if(['start','roi','exclusions'].includes(name))$('#roi-confirmed').checked=false;$('#error').textContent='';}catch(e){$('#error').textContent=e.message}}
+async function request(name,payload={}) {
+  const r=await fetch('/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const answer=await r.json();if(!r.ok)throw Error(answer.error);return answer;
+}
+const profileInputs={skin_tone_monk:'monk',skin_tone_fenty:'fenty',fitzpatrick:'fitz',ita:'ita',melanin_index:'melanin',skin_tone_method:'tone-method',skin_tone_assessment_site:'tone-site',full_name:'full-name',age_years:'age-years',biological_sex:'biological-sex',biological_sex_other:'sex-other',height_cm:'height-cm',weight_kg:'weight-kg'};
+let profileID=null,profileRevision=null,profileLoading=false,profileSequence=0,profileTimer=null;
+const participantID=()=>$('#participant').value.trim().toUpperCase();
+const profileValues=()=>({...Object.fromEntries(Object.entries(profileInputs).map(([key,id])=>[key,$('#'+id).value])),site_assessments:skinEntries.filter(r=>r.site||r.monk||r.fitzpatrick).map(r=>({...r}))});
+function disableProfile(disabled){for(const id of Object.values(profileInputs))$('#'+id).disabled=disabled;for(const el of $('#skin-sites-body').querySelectorAll('input,select,button'))el.disabled=disabled;$('#add-skin-site').disabled=disabled;$('#save-participant').disabled=disabled;}
+let skinEntries=[];
+function updateSkinChoice(){
+  const select=$('#skin-assessment'),old=select.value;select.replaceChildren();
+  const empty=document.createElement('option');empty.value='';empty.textContent='Select site-specific entry (or overall reference)';select.append(empty);
+  for(const row of skinEntries){if(!row.site)continue;const o=document.createElement('option');o.value=row.id;o.textContent=row.site+' / '+row.arm+' / Monk '+(row.monk||'NA')+' / Fitz '+(row.fitzpatrick||'NA');select.append(o);}
+  if(skinEntries.some(r=>r.id===old))select.value=old;
+}
+function renderSkinEntries(){
+  const body=$('#skin-sites-body');body.replaceChildren();
+  skinEntries.forEach((row,index)=>{
+    const tr=document.createElement('tr');
+    for(const key of ['site','arm','monk','fitzpatrick']){
+      const td=document.createElement('td'),input=document.createElement(key==='arm'?'select':'input');
+      input.setAttribute('aria-label','Skin '+key+' '+(index+1));input.style.maxWidth=key==='site'?'220px':'120px';
+      if(key==='arm'){for(const [value,label] of [['not_specified','Not specified'],['left','Left'],['right','Right'],['both','Both']]){const o=document.createElement('option');o.value=value;o.textContent=label;input.append(o);}}
+      else if(key==='site'){input.setAttribute('list','skin-site-choices');input.maxLength=80;}
+      else{input.type='number';input.min=1;input.max=key==='monk'?10:6;input.step=1;input.style.width='75px';}
+      input.value=row[key]||'';input.addEventListener('input',()=>{row[key]=input.value;updateSkinChoice();$('#roi-confirmed').checked=false;$('#profile-status').textContent='Site entries edited; save participant details or start a trial to save.';});
+      td.append(input);tr.append(td);
+    }
+    const td=document.createElement('td'),remove=document.createElement('button');remove.textContent='Remove';remove.onclick=()=>{skinEntries.splice(index,1);renderSkinEntries();$('#roi-confirmed').checked=false;};td.append(remove);tr.append(td);body.append(tr);
+  });updateSkinChoice();
+}
+$('#add-skin-site').onclick=()=>{skinEntries.push({id:'site_'+Date.now()+'_'+Math.random().toString(36).slice(2,10),site:'',arm:'not_specified',monk:'',fitzpatrick:'',method:'self_reported'});renderSkinEntries();};
+$('#skin-assessment').onchange=()=>$('#roi-confirmed').checked=false;
+function applyProfile(answer){
+  if(answer.participant_id!==participantID())return;
+  profileID=answer.participant_id;profileRevision=answer.profile?.revision??null;skinEntries=(answer.profile?.fields?.site_assessments||[]).map(r=>({...r}));renderSkinEntries();
+  for(const [key,id] of Object.entries(profileInputs))$('#'+id).value=answer.profile?.fields?.[key]??'';
+  $('#profile-status').textContent=answer.profile?'Saved details loaded for '+profileID+'.':'No saved details for '+profileID+'. Enter this participant’s details once; they save when a trial starts.';
+}
+function participantChanged(){
+  clearTimeout(profileTimer);profileSequence++;profileID=null;profileRevision=null;skinEntries=[];renderSkinEntries();clearEnvironment();
+  profileLoading=!!participantID();for(const id of Object.values(profileInputs))$('#'+id).value='';
+  $('#notes').value='';$('#roi-confirmed').checked=false;$('#start').disabled=true;disableProfile(true);
+  $('#profile-status').textContent=participantID()?'Loading participant details…':'Select a participant ID to load their saved details.';
+  if(participantID())profileTimer=setTimeout(loadParticipant,250);
+}
+async function loadParticipant(){
+  clearTimeout(profileTimer);const id=participantID(),sequence=++profileSequence;
+  if(!id)return;
+  profileLoading=true;disableProfile(true);
+  try {
+    const answer=await request('participant',{participant_id:id});
+    if(sequence!==profileSequence||id!==participantID())return;
+    applyProfile(answer);$('#error').textContent='';
+  } catch(e) {
+    if(sequence!==profileSequence)return;
+    $('#profile-status').textContent='Could not load participant details: '+e.message;$('#error').textContent=e.message;
+  } finally {
+    if(sequence===profileSequence){profileLoading=false;disableProfile(profileID!==participantID());}
+  }
+}
+$('#participant').addEventListener('input',participantChanged);
+$('#participant').addEventListener('change',()=>{clearTimeout(profileTimer);loadParticipant();});
+for(const id of Object.values(profileInputs))$('#'+id).addEventListener('change',()=>{
+  $('#roi-confirmed').checked=false;$('#profile-status').textContent='Details edited for '+participantID()+'; will save on Start trial, or use Save participant details.';
+});
+$('#save-participant').onclick=async()=>{
+  const id=participantID(),sequence=profileSequence;
+  if(profileLoading||profileID!==id)return;
+  profileLoading=true;disableProfile(true);
+  try {
+    const answer=await request('save_participant',{participant_id:id,profile_revision:profileRevision,fields:profileValues()});
+    if(sequence===profileSequence&&id===participantID()){applyProfile(answer);$('#profile-status').textContent='Participant details saved for '+id+'.';$('#error').textContent='';}
+  } catch(e){if(sequence===profileSequence)$('#error').textContent=e.message;}
+  finally {if(sequence===profileSequence){profileLoading=false;disableProfile(profileID!==participantID());}}
+};
+async function command(name,payload={}) {
+  if(name==='start'){
+    startingTrial=true;
+    for(const id of ['participant','arm','round','site','type','roi-confirmed',...Object.values(profileInputs)])$('#'+id).disabled=true;
+    $('#start').disabled=true;
+  }
+  try {
+    const answer=await request(name,payload);
+    if(['start','roi','exclusions'].includes(name))$('#roi-confirmed').checked=false;
+    if(answer.environment_consumed)clearEnvironment();
+    if(name==='start'&&answer.profile){applyProfile(answer);$('#profile-status').textContent='Participant details saved for '+answer.participant_id+' and copied into this trial.';}
+    $('#error').textContent='';return answer;
+  } catch(e){$('#error').textContent=e.message;return null;}
+  finally {if(name==='start')startingTrial=false;}
+}
+
+let environmentToken=null,environmentLoading=false,environmentSequence=0;
+const environmentInputs=['env-lux','env-cct','env-duv','env-x','env-y','env-condition','env-position','env-description','env-memory','env-file','env-fresh'];
+function disableEnvironment(disabled){for(const id of environmentInputs)$('#'+id).disabled=disabled;$('#save-environment').disabled=disabled||!profileID||profileID!==participantID();}
+function clearEnvironment(){
+  environmentSequence++;environmentToken=null;environmentLoading=false;
+  for(const id of environmentInputs){if(id==='env-condition')$('#'+id).value='all_lights_on';else if(id==='env-fresh')$('#'+id).checked=false;else $('#'+id).value='';}
+  $('#environment-status').textContent='A fresh lighting reading is required before this assessment.';
+}
+for(const id of ['arm','round','site','type','distance','lighting'])$('#'+id).addEventListener('change',clearEnvironment);
+for(const id of environmentInputs)$('#'+id).addEventListener('input',()=>{environmentToken=null;$('#environment-status').textContent='Lighting values changed; record the fresh reading before starting.';});
+const maybeNumber=id=>$('#'+id).value===''?null:Number($('#'+id).value);
+$('#save-environment').onclick=async()=>{
+  const sequence=++environmentSequence;environmentLoading=true;disableEnvironment(true);
+  const payload={participant_id:participantID(),arm:$('#arm').value,site:$('#site').value,round:Number($('#round').value),type:$('#type').value,
+    measurement:{fresh_measurement:$('#env-fresh').checked,illuminance_lux:maybeNumber('env-lux'),cct_k:maybeNumber('env-cct'),delta_uv:maybeNumber('env-duv'),chromaticity_x:maybeNumber('env-x'),chromaticity_y:maybeNumber('env-y'),illumination_condition:$('#env-condition').value,meter_position:$('#env-position').value,light_description:$('#env-description').value,meter_memory_id:$('#env-memory').value,meter_export_filename:$('#env-file').value}};
+  try{const answer=await request('environment',payload);if(sequence!==environmentSequence)return;environmentToken=answer.environment.id;$('#environment-status').textContent='C-800-U reading recorded: '+answer.environment.illuminance_lux+' lux; valid for this assessment for 10 minutes. Saved with the trial on Start.';$('#error').textContent='';}
+  catch(e){if(sequence===environmentSequence)$('#error').textContent=e.message;}
+  finally{if(sequence===environmentSequence){environmentLoading=false;disableEnvironment(false);}}
+};
 pv.onpointerdown=e=>{origin=xy(e);pv.setPointerCapture(e.pointerId)};pv.onpointerup=e=>{if(!origin)return;const end=xy(e),start=origin;origin=null;let box=[Math.min(start[0],end[0]),Math.min(start[1],end[1]),Math.max(start[0],end[0]),Math.max(start[1],end[1])];if($('#draw-mode').value==='exclude')command('exclusions',{rectangles:[...(data?.exclusions||[]),box]});else command('roi',box)};
-$('#start').onclick=()=>command('start',{type:$('#type').value,participant_id:$('#participant').value,arm:$('#arm').value,round:Number($('#round').value),roi_confirmed:$('#roi-confirmed').checked,planned_pressure_seconds:$('#planned-seconds').value?Number($('#planned-seconds').value):null,site:$('#site').value,distance_cm:$('#distance').value?Number($('#distance').value):null,lighting:$('#lighting').value,pressing_surface:$('#surface').value,force_notes:$('#force').value,skin_tone_monk:$('#monk').value,skin_tone_fenty:$('#fenty').value,fitzpatrick:$('#fitz').value,ita:$('#ita').value,melanin_index:$('#melanin').value,notes:$('#notes').value});$('#pressure').onclick=()=>command('pressure');$('#release').onclick=()=>command('release');$('#finish').onclick=()=>command('finish');
+$('#start').onclick=()=>command('start',{type:$('#type').value,participant_id:$('#participant').value,arm:$('#arm').value,round:Number($('#round').value),roi_confirmed:$('#roi-confirmed').checked,planned_pressure_seconds:$('#planned-seconds').value?Number($('#planned-seconds').value):null,site:$('#site').value,distance_cm:$('#distance').value?Number($('#distance').value):null,lighting:$('#lighting').value,pressing_surface:$('#surface').value,force_notes:$('#force').value,...profileValues(),profile_revision:profileRevision,skin_assessment_id:$('#skin-assessment').value||null,environment_token:environmentToken,notes:$('#notes').value});$('#pressure').onclick=()=>command('pressure');$('#release').onclick=()=>command('release');$('#finish').onclick=()=>command('finish');
 const referenceContext=()=>({white_material:$('#white-material').value,lighting:$('#lighting').value,pressing_surface:$('#surface').value,distance_cm:$('#distance').value?Number($('#distance').value):null,notes:$('#notes').value});
 $('#dark').onclick=()=>command('dark',referenceContext());$('#clear-mask').onclick=()=>command('exclusions',{rectangles:[]});$('#artifact').onclick=()=>command('artifact',{active:!data?.artifact_marked});
 $('#white').onclick=()=>command('white',referenceContext());$('#clear-white').onclick=()=>command('clear_white');
@@ -53,7 +199,7 @@ $('#index-status').textContent=!d.white_ready?'Capture a white reference to enab
 }
 async function refresh(){try{let r=await fetch('/data',{cache:'no-store'});if(!r.ok)throw Error('Server '+r.status);data=await r.json();let d=data;studyProgress(d);$('#simulation').textContent=d.mode==='SIMULATION'?'SIMULATED DATA — no camera connected':'';$('#stage').textContent='Trial: '+d.stage+(d.stage==='done'?(d.archive_complete?' · archive saved':' · check archive status / writer queue'):'');$('#rate').textContent=`Target ${d.target_hz} Hz · acquired ${d.acquired_hz.toFixed(1)} Hz · decoded ${d.decoded_hz.toFixed(1)} Hz · decode ${d.decode_ms.toFixed(1)} ms · dropped ${d.dropped} · writer queue ${d.writer_queue} (${d.writer_pending_mib.toFixed(1)} MiB) · all-frame spectral points ${d.all_point_count}`;
 if(d.error)$('#error').textContent=d.error;$('#folder').textContent=d.folder?'Saved on running computer: '+d.folder:'No trial recording yet.';$('#timing').textContent=d.stage==='baseline'?`Collecting baseline: ${Math.min(d.baseline_seconds,Math.max(0,d.now-d.trial_start)).toFixed(1)} / ${d.baseline_seconds} s`:d.stage==='recovery'?`Recovery: ${Math.min(d.recovery_seconds,d.now-d.release).toFixed(1)} / ${d.recovery_seconds} s`:d.stage==='ready'?'Baseline saved. Ready for your next action.':d.stage==='pressure'?`Marked pressure/control: ${d.pressure_elapsed.toFixed(1)} s · planned reminder ${d.intended_pressure_seconds} s (manual release; no force control)`:'';
-const active=['baseline','ready','pressure','recovery'].includes(d.stage);$('#start').disabled=active||d.white_collecting||!d.values||!!d.error||(d.stage==='done'&&!d.archive_complete)||!$('#participant').value||!$('#arm').value||!$('#site').value||!$('#type').value||!$('#roi-confirmed').checked;$('#type').disabled=active;for(let id of ['participant','arm','round','site','roi-confirmed','planned-seconds','white-material','distance','lighting','surface','force','monk','fenty','fitz','ita','melanin','notes'])$('#'+id).disabled=active;$('#pressure').disabled=d.stage!=='ready'||d.trial_type==='resting';$('#release').disabled=d.stage!=='pressure';$('#finish').disabled=!active;$('#white').disabled=active||d.white_collecting||!d.values;$('#clear-white').disabled=active||d.white_collecting;$('#white').textContent=`Capture white reference (${d.white_seconds} s)`;$('#white-status').textContent=d.white_message+(d.white_collecting?' '+Math.min(d.reference_progress,d.white_seconds).toFixed(1)+' / '+d.white_seconds+' s':'');$('#dark').disabled=active||d.white_collecting||!d.roi;$('#artifact').disabled=!active;$('#artifact').textContent='Flag whole frame unusable: '+(d.artifact_marked?'ON':'OFF');$('#reference-status').textContent=`Per-point dark: ${d.dark_ready?'saved':'missing'} · per-point white: ${d.point_white_ready?'saved':'missing'} · ${d.reference_collecting?'capturing '+d.reference_collecting+' '+d.reference_progress.toFixed(1)+' s':''} · manual shadow margin ${d.shadow_margin_px} image pixels`;render(d);
+const active=startingTrial||['baseline','ready','pressure','recovery'].includes(d.stage);$('#start').disabled=active||d.white_collecting||!d.values||!!d.error||(d.stage==='done'&&!d.archive_complete)||!$('#participant').value||!$('#arm').value||!$('#site').value||!$('#type').value||!$('#roi-confirmed').checked||profileLoading||profileID!==participantID()||!environmentToken||environmentLoading||(skinEntries.some(r=>r.site)&&!$('#skin-assessment').value);$('#type').disabled=active;for(let id of ['participant','arm','round','site','roi-confirmed','planned-seconds','white-material','distance','lighting','surface','force','monk','fenty','fitz','ita','melanin','notes'])$('#'+id).disabled=active;disableProfile(active||profileLoading||profileID!==participantID());$('#skin-assessment').disabled=active||profileLoading;disableEnvironment(active||environmentLoading);if(environmentToken&&d.environment_seconds_remaining===0){environmentToken=null;$('#environment-status').textContent='Lighting entry expired; remeasure for this assessment.';}$('#pressure').disabled=d.stage!=='ready'||d.trial_type==='resting';$('#release').disabled=d.stage!=='pressure';$('#finish').disabled=!active;$('#white').disabled=active||d.white_collecting||!d.values;$('#clear-white').disabled=active||d.white_collecting;$('#white').textContent=`Capture white reference (${d.white_seconds} s)`;$('#white-status').textContent=d.white_message+(d.white_collecting?' '+Math.min(d.reference_progress,d.white_seconds).toFixed(1)+' / '+d.white_seconds+' s':'');$('#dark').disabled=active||d.white_collecting||!d.roi;$('#artifact').disabled=!active;$('#artifact').textContent='Flag whole frame unusable: '+(d.artifact_marked?'ON':'OFF');$('#reference-status').textContent=`Per-point dark: ${d.dark_ready?'saved':'missing'} · per-point white: ${d.point_white_ready?'saved':'missing'} · ${d.reference_collecting?'capturing '+d.reference_collecting+' '+d.reference_progress.toFixed(1)+' s':''} · manual shadow margin ${d.shadow_margin_px} image pixels`;render(d);
 if(!pending&&d.decoded!==lastSeq){pending=true;lastSeq=d.decoded;let im=new Image();im.onload=()=>{pv.width=im.width;pv.height=im.height;pc.drawImage(im,0,0);if(d.roi){pc.strokeStyle='#ffe66d';pc.lineWidth=2;pc.strokeRect(d.roi[0]*pv.width,d.roi[1]*pv.height,(d.roi[2]-d.roi[0])*pv.width,(d.roi[3]-d.roi[1])*pv.height)}pc.strokeStyle='#ff7777';for(let r of d.exclusions||[])pc.strokeRect(r[0]*pv.width,r[1]*pv.height,(r[2]-r[0])*pv.width,(r[3]-r[1])*pv.height);pending=false};im.onerror=()=>pending=false;im.src='/preview?t='+Date.now()}
 }catch(e){$('#error').textContent='Disconnected: '+e.message}setTimeout(refresh,500)}refresh();$('#band').onchange=()=>data&&render(data);$('#scale').oninput=()=>data&&render(data);
 </script></body></html>

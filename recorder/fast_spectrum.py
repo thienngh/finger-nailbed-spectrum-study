@@ -20,7 +20,8 @@ from PIL import Image
 from lo_ratio import ratio_map, band_details
 from spatial_recording import (Recorder, PointReference, CONDITIONS, PRESSURE_CONDITIONS,
                                spatial_masks, centered_xy, safe_json)
-from study_session import Study, validate_labels
+from study_session import Study, validate_labels, token, profile_fields, PROFILE_FIELDS, selected_skin_entry
+from environment_recording import lighting_record
 
 CALIBRATION = '/datastore/lo/share/calibrations/1002241528/cal-zoom-38-1002241528-20250704-133438-000000'
 ACTIVE = ('baseline', 'ready', 'pressure', 'recovery')
@@ -101,6 +102,8 @@ class App:
         self.usable_count = 0
         self.pressure_start = None
         self.intended_pressure_seconds = args.pressure_seconds
+        self.environment = None
+        self.environment_received = None
         self.white_collect = None
         self.white_message = 'No white reference: LO-style ratio is unavailable.'
         self.index_latest = None
@@ -132,7 +135,27 @@ class App:
                 raise ValueError(self.error)
             if self.white_collect is not None or self.point_collect is not None:
                 raise ValueError('Wait until reference capture finishes.')
-            if action == 'exclusions':
+            if action in ('participant', 'save_participant'):
+                if self.stage in ACTIVE:
+                    raise ValueError('Finish the trial before switching or editing participants')
+                participant = token(payload.get('participant_id'), 'Participant ID').upper()
+                if action=='participant':
+                    return dict(ok=True, participant_id=participant, profile=self.study.participant(participant))
+                if 'profile_revision' not in payload:
+                    raise ValueError('Load the participant before saving their profile')
+                profile = self.study.save_participant(participant, payload.get('fields'), payload['profile_revision'])
+                return dict(ok=True, participant_id=participant, profile=profile)
+            elif action == 'environment':
+                if self.stage in ACTIVE:
+                    raise ValueError('Finish the assessment before recording the next lighting reading')
+                participant,arm,site,round_number=validate_labels(dict(payload,roi_confirmed=True))
+                condition=payload.get('type')
+                if condition not in CONDITIONS:raise ValueError('Select the assessment condition first')
+                binding=dict(participant_id=participant,arm=arm,site=site,round=round_number,type=condition)
+                self.environment=lighting_record(payload.get('measurement'),binding)
+                self.environment_received=self.elapsed()
+                return dict(ok=True,environment=self.environment)
+            elif action == 'exclusions':
                 if not isinstance(payload, dict): raise ValueError('Expected exclusion list')
                 boxes = payload.get('rectangles', [])
                 if len(boxes) > 20: raise ValueError('At most 20 exclusion rectangles')
@@ -197,7 +220,25 @@ class App:
                     raise ValueError('Camera distance must be positive cm, or omitted')
                 participant, arm, site, round_number = validate_labels(payload)
                 self.study.check_rest(participant, arm, self.trial_type)
+                previous_profile = self.study.participant(participant)
+                fields = dict(previous_profile['fields']) if previous_profile else {}
+                fields.update({key:payload[key] for key in PROFILE_FIELDS if key in payload})
+                fields = profile_fields(fields)
+                skin=selected_skin_entry(fields,payload.get('skin_assessment_id'))
+                if fields['site_assessments'] and skin is None:
+                    raise ValueError('Choose the site-specific skin report for this assessment')
+                if (self.environment is None or payload.get('environment_token')!=self.environment['id']
+                        or self.environment['binding']!=dict(participant_id=participant,arm=arm,site=site,round=round_number,type=self.trial_type)):
+                    raise ValueError('Record a fresh C-800-U lighting reading for this participant/arm/site/round/condition')
+                if self.elapsed()-self.environment_received>600:
+                    raise ValueError('Lighting entry is older than 10 minutes; remeasure before this assessment')
+                environment=copy.deepcopy(self.environment)
                 self.trial_info = {k: payload.get(k) for k in ('participant_id','arm','site','round','distance_cm','lighting','pressing_surface','force_notes','skin_tone_monk','skin_tone_fenty','fitzpatrick','ita','melanin_index','notes')}
+                self.trial_info.update(fields)
+                self.trial_info['selected_skin_assessment']=skin
+                if skin is not None:
+                    self.trial_info.update(skin_tone_monk=skin['monk'],fitzpatrick=skin['fitzpatrick'],
+                                           skin_tone_method='self_reported',skin_tone_assessment_site=skin['site'])
                 self.trial_info.update(participant_id=participant,arm=arm,site=site,round=round_number,roi_confirmed=True)
                 intended = payload.get('planned_pressure_seconds')
                 if intended is None and self.trial_type not in ('arterial_occlusion','venous_occlusion'):
@@ -210,10 +251,12 @@ class App:
                     if value is not None and len(str(value))>500: raise ValueError('Metadata field too long: '+key)
                 if getattr(self.args,'require_references',False) and not all(self.point_refs.values()):
                     raise ValueError('Capture per-point dark AND white references before starting')
+                participant_profile = self.study.save_participant(participant,fields,
+                    payload.get('profile_revision'),check_revision='profile_revision' in payload)
                 self.frame_geometry = (self.coordinates.copy(), self.waves.copy(), tuple(self.shape))
                 self.artifact_marked = False
                 self.pressure_start = None
-                self.folder = self.study.new_folder(participant,arm,site,self.trial_type)
+                self.folder = self.study.new_folder(participant,arm,site,self.trial_type,fields,skin)
                 self.record.last_summary = None
                 self.baseline = self.valid = None
                 self.baseline_samples = []; self.baseline_times = []
@@ -237,6 +280,8 @@ class App:
                               full_sampling_coordinates_yx=self.coordinates,
                               coordinates_convention='Original y,x image pixels; centered x right, y down, ROI center=(0,0); not mm',
                               all_point_count=len(self.coordinates), trial_info=self.trial_info,
+                              participant_profile=participant_profile,
+                              lighting_environment=environment,
                               point_references=self.point_refs, exclusion_rectangles=self.exclusions,
                               shadow_margin_px=getattr(self.args,'shadow_margin_px',10),
                               masking='Manual rectangles + margin, nonfinite points and operator artifact flag; NOT automatic clamp/shadow detection',
@@ -250,8 +295,12 @@ class App:
                                             invalid_rule='Exclude negative/nonfinite rows, zero log inputs and denominator <=1e-12',
                                             aggregation='Mean of valid point ratios within ROI; not ratio of mean spectrum'))
                 self.record.put(('start', (self.folder, self.waves.copy(), config)))
+                self.record.put(('reference',(self.folder/'lighting_environment.json',environment)))
+                self.environment=None
+                self.environment_received=None
                 self.stage = 'baseline'
                 self.trial_start = self.event('baseline_started')
+                return dict(ok=True, participant_id=participant, profile=participant_profile,environment_consumed=True)
             elif action == 'pressure':
                 if self.trial_type == 'resting':
                     raise ValueError('Resting trials have no pressure marker; finish and select the correct condition.')
@@ -456,6 +505,8 @@ class App:
                     heat.append([t, change])
             return clean(dict(mode='SIMULATION' if self.args.simulate else 'LIVE', error=self.error,
                               study=self.study.snapshot(), trial_info=self.trial_info,
+                              environment_ready=self.environment is not None,
+                              environment_seconds_remaining=max(0,600-(self.elapsed()-self.environment_received)) if self.environment_received is not None else None,
                               target_hz=self.args.fps, acquired_hz=rate(self.acquired_times),
                               decoded_hz=rate(self.decoded_times), decode_ms=self.decode_ms,
                               dropped=self.dropped, acquired=self.acquired, decoded=self.decoded,
@@ -536,8 +587,8 @@ def handler(app):
                 if origin and origin != 'http://' + self.headers.get('Host', ''):
                     raise ValueError('Cross-origin commands are disabled')
                 payload = json.loads(self.rfile.read(n))
-                app.command(self.path.strip('/'), payload)
-                self.respond(b'{"ok":true}')
+                result = app.command(self.path.strip('/'), payload)
+                self.respond(json.dumps(result if result is not None else {'ok':True},allow_nan=False).encode())
             except (ValueError, TypeError, AttributeError) as exc:
                 self.respond(json.dumps({'error':str(exc)}).encode(), status=400)
     return Handler
