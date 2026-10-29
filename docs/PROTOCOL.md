@@ -34,7 +34,11 @@ Capture references at session start and recapture when illumination, settings, l
 
 A clear clamp/plate needs separate optical characterization/sham controls under the same geometry. White and dark capture alone do not remove clear-plastic transmission, specular reflections, lensing, displacement or shadows. If measuring transmission through a plate, plan matched references through that optical path with the clinician/optics lead; do not divide by an arbitrary 'clear-clamp spectrum' and assume artifacts are gone. A black-clamp spectrum is useful for identifying contamination, not for electronic dark subtraction. No clamp-specific control is necessary if no clamp/plate is used; lens-covered dark remains necessary with a cuff.
 
-## 4. Rehearse markers and controls
+## 4. Measure and record illumination before every assessment
+
+Follow [LIGHTING.md](LIGHTING.md). Use the Sekonic C-800-U in ambient/continuous mode at the tissue plane. Enter a new lux reading, optional CCT/Delta uv/x/y, meter position, source state and memory ID. Confirm it is fresh and record it before Start. The entry is single-use, bound to this participant/arm/site/round/condition, and expires after 10 minutes. Dark/white references still have their separate purpose. No automatic lux-based correction is applied.
+
+## 4a. Rehearse markers and controls
 
 Record a resting condition for stability/noise and a sham condition for apparatus-in-view effects without compression. Agree on their durations. For sham, click Start, wait for ready, mark **control start** when the object enters the planned geometry without pressure, then mark release when it leaves. Do not label an actual pressure trial as resting.
 
@@ -44,7 +48,7 @@ Manual markers log **button receipt time**, with human timing uncertainty. Pract
 
 ## 5. Run one trial
 
-1. Select participant ID, **left/right arm**, collection round, agreed site and actual condition. Returning participants use the same ID. Enter distance, illumination, surface/apparatus, force/pressure notes and planned duration. For cuff conditions, enter the clinician-approved duration explicitly; there is no cuff-duration default.
+1. Select participant ID. Their saved name, age, sex, height, weight and skin-site reports load automatically; a new ID clears those fields. Assess/enter the Monk score and its method/site once before that person’s first trial, then use Start trial or Save participant details to save the profile. Select **left/right arm**, collection round, agreed site and actual condition. Returning participants use the same ID. Enter distance, illumination, surface/apparatus, force/pressure notes and planned duration. For cuff conditions, enter the clinician-approved duration explicitly; there is no cuff-duration default.
 2. Reposition the participant and recheck focus, reflections and motion. Draw a **new or explicitly rechecked ROI entirely on the intended visible tissue**. Clear old exclusion boxes and draw new ones where needed. If the intended compressed tissue is hidden, correct the setup before recording. The rectangle does not track movement.
 3. Tick the participant/arm/site/ROI confirmation box. Click **Start trial + collect baseline**. Keep tissue and lighting still during the default 10-second average. This saves a baseline automatically; there is no separate baseline-click count.
 4. Wait for **ready**. The clinician/operator applies the agreed intervention and clicks **Mark pressure/control start** at the event. For resting trials, do not apply pressure or use pressure/release buttons; record for the agreed duration and click Finish.
@@ -56,7 +60,7 @@ For a resting recording, Finish after the agreed duration is normal and the arch
 
 ## 6. Move to the next participant / return for round 2
 
-Keep the camera program running. Change labels and ROI, confirm, and start again. There is no restart per participant, no camera power cycle and no per-person file download.
+Keep the camera program running. Select the next participant ID to restore that person’s saved details, then change trial labels and ROI, confirm, and start again. Returning to a participant reuses their saved profile; the score does not need re-entry. Use the same study ID after restarting to find those profiles. There is no restart per participant, no camera power cycle and no per-person file download.
 
 | Round | Sequence |
 |---|---|

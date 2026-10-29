@@ -17,12 +17,15 @@ Measurements remain decoded optical signals. Offline dark/white correction provi
 | `frames.csv` | One row per saved full frame: path, timestamp, phase, total/usable point counts and bytes. |
 | `roi_spectra.csv` | Original-rate mean of currently usable ROI points, one column per wavelength in arbitrary units. Missing/invalid tissue is NaN, not fabricated data. |
 | `events.csv` | Baseline, pressure/control, release, mask changes, artifact flags and finish markers with host receipt timing. |
+| `lighting_environment.json` | Fresh per-trial C-800-U lux/color/context entry; manual receipt timing, not synchronized spectral illumination. |
 | `baseline.csv` | Per-band resting baseline mean and temporal SD from this trial. |
 | `dark_points.npz`, `white_points.npz` and matching JSON | Per-point reference mean/SD, geometry and context copied into the trial. |
 | `lo_ratio.csv`, `lo_ratio_baseline.json` | Optional exploratory vendor-style 548/599 ratio. Normalization differs from physical absorbance and remains scene-sensitive; do not label it calibrated perfusion or SpO₂. |
 | `summary.json` | Actual achieved ROI rate, maximum receipt gap, rows/full-frame counts, drops, errors and archive completeness. |
 | `recording_status.json` | Incomplete while recording; final completeness status after all writes. |
 | `preview_*.jpg` | Sparse display-only previews. These are not the full-rate frame archive. |
+
+Each participant folder has `participant.json` with saved skin-tone descriptors, method/site, update time and revision. Profiles are included in bulk downloads. `session.json` contains an immutable profile snapshot for that trial, so editing the current profile does not rewrite previous trial metadata. Profiles from the earlier version do not exist until entered/verified once.
 
 The study root also has references, persistent per-arm intervention timestamps, and `study_manifest.csv` generated on clean shutdown or before bulk download. A new trial never overwrites a previous one. Returning to a participant appends a new timestamped trial under the same participant/arm/site/condition. Archived geometry is in original image pixels; centered coordinates have ROI center `(0,0)`, x right/y down. They are **not millimeters**, and changing ROI changes the origin. Full original coordinates and point IDs allow later comparison.
 
@@ -56,3 +59,5 @@ python export_spatial.py "$TRIAL" --output "$HOME/Downloads/P01-left-reviewed-ex
 The result includes `frame_spectra.csv` (reviewed original-rate means), optional **`point_spectra.csv.gz`** (every point, coordinates and timestamp, every wavelength), an export summary with point IDs, and original-rate/release-window plots. Gzip CSVs can be very large after decompression; NPZ is the primary lossless archive. Extra review masks are additive; they cannot undo original exclusions. Reference correction leaves unsupported/weak bands invalid rather than clipping or inventing values. Original data remain untouched.
 
 These plots support quality review and exploratory comparisons. The previous cohort report is not automatically regenerated for this new study. For a new clinician report, use reviewed trials, document exclusions and matching site/condition, compare repeatability and sham changes, and treat **participants** as the independent biological units. Thousands of correlated frames or spatial points do not become thousands of independent subjects. Band selection and any ML work require held-out participants/validation; four volunteers do not establish clinical performance or a final device wavelength.
+
+The latest profile/environment fields and reference-correction assumptions are documented in [LIGHTING.md](LIGHTING.md). Trial folder names can contain names and reported scores; keep the complete recordings private.
